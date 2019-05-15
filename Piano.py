@@ -6,16 +6,16 @@ while the number row is used to control different functions.
 
 Here is a diagram showing the layout of the keyboard:
 
-			      Octave
-	    Transpose       Transpose	      Tuning	   Duration
-	    -       +       -       +       -       +      -       +
+			      Octave                                       Arpeggiator
+	    Transpose       Transpose	      Tuning	   Duration          Control
+	    -       +       -       +       -       +      -       +        -       +
 ┌───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬────────────────┐
 │~	│!	│@	│#	│$	│%	│^	│&	│*	│(	│)	│_	│+	│Backspace	 │
-│`	│1	│2	│3	│4	│5	│6	│7	│8	│9	│0	│-	│=	│		 │
+│`	│1	│2	│3	│4	│5	│6	│7	│8	│9      │0	│-	│=	│		 │
 │	│	│	│	│	│	│	│	│	│	│	│	│	│		 │
 ├───────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬─────────────┤
 │Tab	   │Q	   │W	   │E	   │R	   │T	   │Y	   │U	   │I	   │O	   │P	   │{	   │}	   │|	   	 │
-│	   │	   │	   │	   │	   │	   │	   │	   │	   │	   │	   │[	   │]	   │\	   	 │
+│	   │  Quit │ Reset │	   │	   │	   │	   │	   │	   │	   │	   │[	   │]	   │\	   	 │
 │	   │	   │	   │	   │	   │	   │	   │	   │	   │	   │	   │	   │	   │	   	 │
 ├──────────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴─────────────┤
 │Caps Lock    │A      │S      │D      │F      │G      │H      │J      │K      │L      │:      │"      │Enter	   	 │
@@ -23,8 +23,8 @@ Here is a diagram showing the layout of the keyboard:
 │	      │       │       │       │       │       │       │       │       │       │       │       │		   	 │
 ├─────────────┴───┬───┴───┬───┴───┬───┴───┬───┴───┬───┴───┬───┴───┬───┴───┬───┴───┬───┴───┬───┴───┬───┴──────────────────┤
 │Shift	      	  │Z      │X      │C      │V      │B      │N      │M      │<      │>      │?      │Shift      		 │
-│	      	  │     C │     D │     E │     F │     G │     A │     B │,    C │.   D  │/    E │      		 │
-│	      	  │       │       │       │       │       │       │       │       │       │       │      		 │
+|     Turn on     │     C │     D │     E │     F │     G │     A │     B │,    C │.   D  │/    E │      		 │
+│     Arpeggio 	  │       │       │       │       │       │       │       │       │       │       │      		 │
 ├───────────┬─────┴───┬───┴────┬──┴───────┴───────┴───────┴───────┴───────┴───┬───┴─────┬─┴───────┼─────────┬────────────┤
 │Ctrl	    │Win      │Alt     │	  				      │Alt	│Win	  │Menu	    │Ctrl        │
 │	    │	      │	       │	  				      │		│	  │	    │            │
@@ -43,6 +43,8 @@ transpose_control = 0 #Variable to transpose the note. (Moves the value of a not
 duration_control = 100 #Variable for the duration of the note
 tuning_number = 440 #Used in the find_frequency module (Used in the formula to find the frequency of each note)
 arpeggio = False #Boolean for the arpeggiator
+arpeggio_control = 4
+arpeggio_list = [0, 4, 7, 12, 16, 19, 24, 28, 31, 36]
 
 def play_note(note): #Function that plays the note
     frequency = find_frequency(note + transpose_control)
@@ -94,11 +96,22 @@ def tune(control): #Tunes the piano and then prints what the piano is tuned too
     print("The piano is now tuned to: A4 =", tuning_number)
     sleep(0.25)
 
-def arpeggiate(root):                #Makes an arpeggio based on the root note. Here is an example if the note was C
-    arpeggio = [root]                
-    arpeggio.append(root + 2)
-    while True:                           #IS BROKEN
+def arpeggiate(root):                #Makes an arpeggio based on the root note.
+    global arpeggio_control
+    arpeggio = []
     arpeggio_frequency = []
+    down_arpeggio = []
+    if arpeggio_control > 0:
+        for i in range(arpeggio_control):
+            arpeggio.append(root + arpeggio_list[i])
+    elif arpeggio_control < 0:
+        for i in range(arpeggio_control * -1):
+            arpeggio.append(root + (arpeggio_list[i] * -1))
+    elif arpeggio_control == 0:
+        return find_frequency(root)
+    down_arpeggio = arpeggio[::-1]
+    del down_arpeggio[0]
+    arpeggio.extend(down_arpeggio)
     for i in arpeggio:
         arpeggio_frequency.append(find_frequency(i))
     return arpeggio_frequency
@@ -131,10 +144,24 @@ while True:
             arpeggio = True
             print("Arpeggio = True")
             sleep(.25)
-    elif note == 'ctrl':
-        if arpeggio_control = 3:
-            arpeggio_control = 1
-        arpeggio_control += 1
+    elif note == '9' or note == '0':
+        if note == '9':
+            if arpeggio_control != -10: 
+                arpeggio_control -= 1    
+                print('The number of notes in an arpeggio is:', arpeggio_control)
+                sleep(.33)
+            else:
+                print('Arpeggio thing is too low, increase it')
+
+        elif note == '0':
+            if arpeggio_control != 10:
+                arpeggio_control += 1
+                print('The number of notes in an arpeggio is:', arpeggio_control)
+                sleep(.33)
+            else:
+                print('Arpeggio thing is too high, decrease it')
+        else:
+            break
     elif note in note_placements.keys():
         if arpeggio == True:
             play_arpeggio(note_placements[note])
